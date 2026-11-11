@@ -1,11 +1,12 @@
 'use strict';
 const API_BASE=(window.HEALTH_API_URL||'').replace(/\/$/,'');
-let sessionToken=sessionStorage.getItem('healthSession')||'';
+let sessionToken=localStorage.getItem('healthSession')||sessionStorage.getItem('healthSession')||'';
+if(sessionToken){localStorage.setItem('healthSession',sessionToken);sessionStorage.removeItem('healthSession')}
 let refreshSequence=0;
 const loginScreen=document.getElementById('loginScreen');
 const loginError=document.getElementById('loginError');
 function setLoggedOut(message=''){
-  sessionToken='';sessionStorage.removeItem('healthSession');currentUser=null;custom=[];visitRecords=[];
+  sessionToken='';localStorage.removeItem('healthSession');sessionStorage.removeItem('healthSession');currentUser=null;custom=[];visitRecords=[];
   document.querySelectorAll('.admin-only').forEach(el=>el.hidden=true);
   document.getElementById('addBtn').hidden=true;document.getElementById('logoutBtn').hidden=true;
   loginScreen.hidden=false;loginError.textContent=message;document.getElementById('loginPassword').value='';
@@ -39,7 +40,7 @@ async function loadUsers(){
 }
 document.getElementById('loginForm').addEventListener('submit',async e=>{
   e.preventDefault();loginError.textContent='';const button=e.currentTarget.querySelector('button');button.disabled=true;
-  try{const data=await api('/api/login',{method:'POST',body:JSON.stringify({name:document.getElementById('loginName').value,password:document.getElementById('loginPassword').value})});sessionToken=data.token;sessionStorage.setItem('healthSession',sessionToken);currentUser=data.user;document.getElementById('loginPassword').value='';showAccount();await refreshData()}
+  try{const data=await api('/api/login',{method:'POST',body:JSON.stringify({name:document.getElementById('loginName').value,password:document.getElementById('loginPassword').value})});sessionToken=data.token;localStorage.setItem('healthSession',sessionToken);sessionStorage.removeItem('healthSession');currentUser=data.user;document.getElementById('loginPassword').value='';showAccount();await refreshData()}
   catch(err){loginError.textContent=err.message;if(currentUser)alert(err.message)}finally{button.disabled=false}
 });
 document.getElementById('logoutBtn').addEventListener('click',async()=>{try{await api('/api/logout',{method:'POST'})}catch(e){}setLoggedOut();displaySection('dashboard')});
