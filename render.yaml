@@ -2,14 +2,13 @@ services:
   - type: web
     name: health-platform-api
     runtime: python
+    plan: free
     buildCommand: pip install -r backend/requirements.txt
     startCommand: uvicorn backend.app:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: health-platform-db
-          property: connectionString
+        sync: false
       - key: APP_PEPPER
         generateValue: true
       - key: ALLOWED_ORIGIN
@@ -18,7 +17,3 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
-databases:
-  - name: health-platform-db
-    databaseName: health_platform
-    user: health_platform
