@@ -54,3 +54,15 @@ const status=document.createElement('p');status.id='syncStatus';status.className
 (async()=>{if(!sessionToken){setLoggedOut();return}try{currentUser=await api('/api/me');showAccount();await refreshData()}catch(e){if(!currentUser)setLoggedOut(e.message)}})();
 setInterval(()=>{if(currentUser&&document.visibilityState==='visible')refreshData().catch(()=>{})},30000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&currentUser)refreshData().catch(()=>{})});
+
+document.getElementById('adminProfileForm').addEventListener('submit',async e=>{
+  e.preventDefault();const message=document.getElementById('adminProfileMessage');message.textContent='';
+  const name=document.getElementById('adminNewName').value.trim();const password=document.getElementById('adminNewPassword').value;const confirmPassword=document.getElementById('adminConfirmPassword').value;
+  if(!name&&!password){message.textContent='أدخل اسماً أو كلمة مرور جديدة.';return}
+  if(name&&name.split(/\s+/).length<3){message.textContent='أدخل الاسم الثلاثي.';return}
+  if(password&&password.length<16){message.textContent='كلمة المرور الجديدة لا تقل عن 16 حرفاً.';return}
+  if(password!==confirmPassword){message.textContent='تأكيد كلمة المرور غير مطابق.';return}
+  const payload={current_password:document.getElementById('adminCurrentPassword').value};if(name)payload.name=name;if(password)payload.password=password;
+  const button=e.currentTarget.querySelector('button');button.disabled=true;
+  try{await api('/api/admin/profile',{method:'PATCH',body:JSON.stringify(payload)});e.target.reset();if(name)document.getElementById('loginName').value=name;displaySection('dashboard');setLoggedOut('تم تغيير بيانات الأدمن. سجّل الدخول بالبيانات الجديدة.')}catch(err){message.textContent=err.message}finally{button.disabled=false}
+});
